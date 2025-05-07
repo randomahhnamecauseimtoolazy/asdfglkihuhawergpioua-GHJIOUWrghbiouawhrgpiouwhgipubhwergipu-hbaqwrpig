@@ -1,0 +1,921 @@
+local P = game:GetService("\082\117\110\083\101\114\118\105\099\101");
+local m = game:GetService("\084\101\097\109\115");
+local Y = game:GetService("\080\108\097\121\101\114\115");
+local O = workspace.CurrentCamera;
+local c = game:GetService("\085\115\101\114\073\110\112\117\116\083\101\114\118\105\099\101");
+local M = game:GetService("\084\119\101\101\110\083\101\114\118\105\099\101");
+local j = .1;
+local V = Instance.new("\078\117\109\098\101\114\086\097\108\117\101");
+V.Value = .1;
+local N = false;
+local a = 500;
+local J = false;
+local X = false;
+local w = false;
+local y = 500;
+local U = {};
+local r = false;
+local i = false;
+local W = nil;
+local Q = false;
+local I = false;
+local v = Drawing.new("\067\105\114\099\108\101");
+v.Visible = false;
+v.Color = Color3.fromRGB(255, 255, 255);
+v.Thickness = 1;
+v.Filled = false;
+v.Transparency = 1;
+v.Radius = 100;
+v.Position = Vector2.new(O.ViewportSize.X / 2, O.ViewportSize.Y / 2);
+(O:GetPropertyChangedSignal("\086\105\101\119\112\111\114\116\083\105\122\101")):Connect(function()
+	v.Position = Vector2.new(O.ViewportSize.X / 2, O.ViewportSize.Y / 2);
+end);
+local t = Vector2.new;
+local R = { esp_cache = {} };
+local h = {
+		box = { color = Color3.fromRGB(255, 255, 255), border_size_pixel = 1 },
+		tracer = { color = Color3.fromRGB(255, 255, 255), thickness = 1 },
+		distance_text = { size = 14, color = Color3.fromRGB(255, 255, 255) },
+		chams = { team_check = true },
+	};
+local function B()
+	local P = {};
+	for m, Y in ipairs(workspace.Players:GetChildren()) do
+		for m, Y in ipairs(Y:GetChildren()) do
+			if Y:IsA("\077\111\100\101\108") then
+				table.insert(P, Y);
+			end;
+		end;
+	end;
+	return P;
+end;
+local function x(P)
+	local m = Y.LocalPlayer.Team;
+	local O = P:FindFirstChildWhichIsA("\070\111\108\100\101\114") and (P:FindFirstChildWhichIsA("\070\111\108\100\101\114")):FindFirstChildOfClass("\077\101\115\104\080\097\114\116");
+	if not O then
+		return false;
+	end;
+	local c = O.BrickColor.Name;
+	if c == "\066\108\097\099\107" and m.Name == "\080\104\097\110\116\111\109\115" then
+		return false;
+	elseif c ~= "\066\108\097\099\107" and m.Name == "\071\104\111\115\116\115" then
+		return false;
+	end;
+	return true;
+end;
+local function H(P)
+	if not R.esp_cache[P] then
+		R.esp_cache[P] = {
+				box_square = Drawing.new("\083\113\117\097\114\101"),
+				box_outline = Drawing.new("\083\113\117\097\114\101"),
+				box_inline = Drawing.new("\083\113\117\097\114\101"),
+				tracer_line = Drawing.new("\076\105\110\101"),
+				distance_label = Drawing.new("\084\101\120\116"),
+				name_label = Drawing.new("\084\101\120\116"),
+			};
+	end;
+end;
+local function D(P)
+	if R.esp_cache[P] then
+		for P, m in pairs(R.esp_cache[P]) do
+			m:Remove();
+		end;
+		R.esp_cache[P] = nil;
+	end;
+end;
+local function z(P, m)
+	for P, m in P:GetChildren() do
+		if m:IsA("\066\097\115\101\080\097\114\116") then
+			local P = m:FindFirstChildOfClass("\083\112\101\099\105\097\108\077\101\115\104");
+			if P and P.MeshId == "\114\098\120\097\115\115\101\116\105\100\058\047\047\052\048\052\057\050\052\048\048\055\056" then
+				return m;
+			end;
+		end;
+	end;
+	return nil;
+end;
+local function f(P, m)
+	for P, m in P:GetChildren() do
+		if m:IsA("\066\097\115\101\080\097\114\116") then
+			local P = m:FindFirstChildOfClass("\083\112\101\099\105\097\108\077\101\115\104");
+			if P and P.MeshId == "\114\098\120\097\115\115\101\116\105\100\058\047\047\054\049\055\057\050\053\054\050\053\054" then
+				return m;
+			end;
+		end;
+	end;
+	return nil;
+end;
+local function F(P)
+	if not P then
+		return;
+	end;
+	local O = (P:FindFirstChildWhichIsA("\070\111\108\100\101\114")):FindFirstChildOfClass("\077\101\115\104\080\097\114\116");
+	if not O then
+		return;
+	end;
+	if O.BrickColor == BrickColor.new("\066\108\097\099\107") then
+		return m.Phantoms == Y.LocalPlayer.Team, m.Phantoms;
+	end;
+	return m.Ghosts == Y.LocalPlayer.Team, m.Ghosts;
+end;
+local function k()
+	local P = nil;
+	local m = math.huge;
+	local Y = Vector2.new(O.ViewportSize.X / 2, O.ViewportSize.Y / 2);
+	for c, M in ipairs(B()) do
+		if M:IsDescendantOf(workspace.Ignore.DeadBody) then
+			continue;
+		end;
+		local j, V = F(M);
+		if h.chams.team_check and j then
+			continue;
+		end;
+		local J = f(M, "\072\101\097\100");
+		if J then
+			local c = Ray.new(O.CFrame.Position, (J.Position - O.CFrame.Position).unit * 1000);
+			local M, j = O:WorldToViewportPoint(J.Position);
+			if j then
+				local c = Vector2.new(M.X, M.Y);
+				local j = (c - Y).Magnitude;
+				local V = (J.Position - O.CFrame.Position).Magnitude;
+				if N and V > a then
+					continue;
+				end;
+				if Q then
+					if j <= v.Radius then
+						if V <= 30 then
+							P = J;
+							break;
+						end;
+						if j < m then
+							P = J;
+							m = j;
+						end;
+					end;
+				else
+					if V <= 30 then
+						P = J;
+						break;
+					end;
+					if j < m then
+						P = J;
+						m = j;
+					end;
+				end;
+			end;
+		end;
+	end;
+	return P;
+end;
+local A = nil;
+local function b()
+	if not j then
+		return;
+	end;
+	if i then
+		if not W or not W:IsDescendantOf(workspace.Players) then
+			if I then
+				W = k();
+				if not W then
+					i = false;
+					return;
+				end;
+			else
+				i = false;
+				return;
+			end;
+		end;
+		local P, m = O:WorldToViewportPoint(W.Position);
+		if m then
+			local m = c:GetMouseLocation();
+			local Y = Vector2.new(P.X, P.Y);
+			local O = Y - m;
+			local M = O.Magnitude;
+			if M > 1 then
+				local P = O * V.Value;
+				mousemoverel(P.X, P.Y);
+			end;
+		end;
+	end;
+end;
+local function Z(P)
+	local m = TweenInfo.new(.4, Enum.EasingStyle.Linear, Enum.EasingDirection.Out);
+	local Y = M:Create(V, m, { Value = P });
+	Y:Play();
+end;
+local function G(P)
+	if P:IsA("\066\097\115\101\080\097\114\116") or P:IsA("\085\110\105\111\110\079\112\101\114\097\116\105\111\110") or P:IsA("\077\101\115\104\080\097\114\116") then
+		U[P] = {
+				material = P.Material,
+				reflectance = P.Reflectance,
+				cast_shadow = P.CastShadow,
+				texture_id = P:FindFirstChild("\084\101\120\116\117\114\101\073\100") and P.TextureId or nil,
+			};
+	end;
+end;
+local function n()
+	local P = workspace:FindFirstChild("\077\097\112");
+	if not P then
+		return;
+	end;
+	local m = P:GetDescendants();
+	for P, m in ipairs(m) do
+		G(m);
+		if m:IsA("\066\097\115\101\080\097\114\116") or m:IsA("\085\110\105\111\110\079\112\101\114\097\116\105\111\110") or m:IsA("\077\101\115\104\080\097\114\116") then
+			m.Material = Enum.Material.SmoothPlastic;
+			m.Reflectance = 0;
+			m.CastShadow = false;
+			if m:IsA("\077\101\115\104\080\097\114\116") and m:FindFirstChild("\084\101\120\116\117\114\101\073\100") then
+				m.TextureId = "";
+			end;
+		end;
+	end;
+	r = true;
+end;
+local function u()
+	local P = workspace:FindFirstChild("\077\097\112");
+	if not P then
+		return;
+	end;
+	local m = P:GetDescendants();
+	for P, m in ipairs(m) do
+		if U[m] then
+			m.Material = U[m].material;
+			m.Reflectance = U[m].reflectance;
+			m.CastShadow = U[m].cast_shadow;
+			if m:IsA("\077\101\115\104\080\097\114\116") and m:FindFirstChild("\084\101\120\116\117\114\101\073\100") then
+				m.TextureId = U[m].texture_id or "";
+			end;
+		end;
+	end;
+	r = false;
+end;
+local function S(P)
+	if X then
+		local m = Ray.new(O.CFrame.Position, (P.Position - O.CFrame.Position).unit * 1000);
+		local c, M = workspace:FindPartOnRay(m, Y.LocalPlayer.Character, false, true);
+		return c == P;
+	else
+		return true;
+	end;
+end;
+local function e(P)
+	if J then
+		local m = Ray.new(O.CFrame.Position, (P.Position - O.CFrame.Position).unit * 1000);
+		local c, M = workspace:FindPartOnRay(m, Y.LocalPlayer.Character, false, true);
+		return c == P;
+	else
+		return true;
+	end;
+end;
+local T = loadstring(game:HttpGet("\104\116\116\112\115\058\047\047\112\097\115\116\101\098\105\110\046\099\111\109\047\114\097\119\047\089\082\070\057\076\089\089\098"));
+(getgenv()).jump_height_value = 30;
+local d = identifyexecutor();
+if d == "\088\101\110\111" then
+	local_player:Kick("\085\115\101 \097\110\111\116\104\101\114 \069\120\101\099\117\116\111\114\033\033");
+else
+ 
+end;
+local s = T({ rounding = false, theme = "\108\105\109\101", smoothDragging = false });
+s.autoDisableToggles = true;
+local p = s.newWindow({ text = "\067\114\111\098\115\116\101\114\046\108\111\108 \124 \082\069\076\069\065\083\069 \086\049\046\049 \124 \100\115\099\046\103\103\047\099\114\111\098\115\116\101\114\108\111\108", resize = false, size = Vector2.new(550, 376) });
+local g = p:addMenu({ text = "\077\097\105\110" });
+local K = g:addSection({ text = "\065\105\109\098\111\116", side = "\108\101\102\116", showMinButton = false });
+local C = K:addToggle({ text = "\069\110\097\098\108\101\100", state = false });
+local q = K:addToggle({ text = "\087\097\108\108 \067\104\101\099\107", state = false });
+local o = K:addToggle({ text = "\065\117\116\111 \084\097\114\103\101\116 \083\119\105\116\099\104", state = false });
+local E = K:addToggle({ text = "\085\115\101 \077\097\120 \068\105\115\116\097\110\099\101", state = false });
+local L = K:addSlider({
+		text = "\077\097\120 \068\105\115\116\097\110\099\101",
+		min = 50,
+		max = 1000,
+		default = 500,
+		float = false,
+		step = 10,
+	});
+o:bindToEvent("\111\110\084\111\103\103\108\101", function(P)
+	I = P;
+end);
+E:bindToEvent("\111\110\084\111\103\103\108\101", function(P)
+	N = P;
+end);
+L:bindToEvent("\111\110\078\101\119\086\097\108\117\101", function(P)
+	a = P;
+end);
+C:bindToEvent("\111\110\084\111\103\103\108\101", function(m)
+	is_aimbot_enabled = m;
+	if is_aimbot_enabled then
+		input_began_connection = c.InputBegan:Connect(function(P)
+				if P.UserInputType == Enum.UserInputType.MouseButton2 then
+					i = true;
+					W = k();
+				end;
+			end);
+		input_ended_connection = c.InputEnded:Connect(function(P)
+				if P.UserInputType == Enum.UserInputType.MouseButton2 then
+					i = false;
+					W = nil;
+				end;
+			end);
+		render_stepped_connection = P.RenderStepped:Connect(function()
+				if i and W then
+					if q:getState() then
+						if S(W) then
+							b();
+						end;
+					else
+						b();
+					end;
+				end;
+			end);
+	else
+		i = false;
+		W = nil;
+		if input_began_connection then
+			input_began_connection:Disconnect();
+		end;
+		if input_ended_connection then
+			input_ended_connection:Disconnect();
+		end;
+		if render_stepped_connection then
+			render_stepped_connection:Disconnect();
+		end;
+	end;
+end);
+local l = K:addSlider({
+		text = "\083\116\114\101\110\103\116\104",
+		min = .1,
+		max = 1.5,
+		default = .1,
+		float = true,
+		step = .1,
+	});
+local PP = K:addLabel({ text = "\042 \086\097\108\117\101\115 \097\098\111\118\101 \049 \119\105\108\108 \098\101 \115\104\097\107\121\033" });
+local mP = g:addSection({ text = "\069\083\080", side = "\114\105\103\104\116", showMinButton = false });
+local YP = mP:addToggle({ text = "\069\110\097\098\108\101\100", state = false });
+local OP = mP:addToggle({ text = "\066\111\120", state = false });
+local cP = mP:addToggle({ text = "\084\114\097\099\101\114", state = false });
+local MP = mP:addToggle({ text = "\072\101\097\100 \068\111\116", state = false });
+local jP = mP:addToggle({ text = "\068\105\115\116\097\110\099\101", state = false });
+local VP = mP:addToggle({ text = "\078\097\109\101", state = false });
+local NP = mP:addToggle({ text = "\087\097\108\108 \067\104\101\099\107", state = false });
+local aP = mP:addToggle({ text = "\085\115\101 \077\097\120 \068\105\115\116\097\110\099\101", state = false });
+local JP = mP:addColorPicker({ text = "\066\111\120 \067\111\108\111\114", color = Color3.fromRGB(255, 255, 255) });
+local XP = mP:addColorPicker({ text = "\084\114\097\099\101\114 \067\111\108\111\114", color = Color3.fromRGB(255, 255, 255) });
+local wP = mP:addColorPicker({ text = "\068\105\115\116\097\110\099\101 \067\111\108\111\114", color = Color3.fromRGB(255, 255, 255) });
+local yP = mP:addColorPicker({ text = "\072\101\097\100 \068\111\116 \067\111\108\111\114", color = Color3.fromRGB(255, 255, 255) });
+local UP = mP:addColorPicker({ text = "\078\097\109\101 \067\111\108\111\114", color = Color3.fromRGB(255, 255, 255) });
+local rP = mP:addSlider({
+		text = "\077\097\120 \068\105\115\116\097\110\099\101",
+		min = 50,
+		max = 1000,
+		default = 500,
+		float = false,
+		step = 10,
+	});
+local iP = g:addSection({ text = "\070\079\086", side = "\108\101\102\116", showMinButton = false });
+local WP = iP:addToggle({ text = "\083\104\111\119 \070\079\086 \067\105\114\099\108\101", state = false });
+local QP = iP:addToggle({ text = "\076\105\109\105\116 \069\083\080 \084\111 \070\079\086", state = false });
+local IP = iP:addSlider({
+		text = "\070\079\086 \082\097\100\105\117\115",
+		min = 50,
+		max = 300,
+		default = 100,
+		float = false,
+		step = 1,
+	});
+local vP = p:addMenu({ text = "\080\108\097\121\101\114" });
+local tP = vP:addSection({ text = "\076\111\099\097\108\080\108\097\121\101\114 \077\111\100\115", side = "\108\101\102\116" });
+local RP = tP:addSlider({
+		text = "\087\097\108\107\083\112\101\101\100",
+		min = 0,
+		max = .17,
+		default = 0,
+		float = true,
+		step = .01,
+	});
+local hP = tP:addSlider({
+		text = "\074\117\109\112\080\111\119\101\114",
+		min = 30,
+		max = 100,
+		default = 50,
+		float = true,
+		step = 1,
+	});
+local BP = vP:addSection({ text = "\070\117\110 \077\111\100\115" });
+local xP = BP:addToggle({ text = "\074\117\109\112 \068\101\108\097\121 \066\121\112\097\115\115", state = false });
+local HP = p:addMenu({ text = "\077\105\115\099" });
+local DP = HP:addSection({ text = "\077\105\115\099 \077\111\100\115", side = "\108\101\102\116" });
+local zP = HP:addSection({ text = "\083\097\102\101\116\121", side = "\114\105\103\104\116" });
+local fP = zP:addToggle({ text = "\065\110\116\105 \086\111\116\101\107\105\099\107", state = false });
+local FP = DP:addToggle({ text = "\084\111\103\103\108\101 \084\101\120\116\117\114\101\115", state = false });
+local kP = p:addMenu({ text = "\067\111\110\102\105\103\115" });
+local AP = kP:addSection({ text = "\067\111\110\102\105\103\117\114\097\116\105\111\110", side = "\108\101\102\116" });
+local bP = AP:addButton({ text = "\083\097\118\101 \067\111\110\102\105\103" });
+local ZP = AP:addButton({ text = "\076\111\097\100 \067\111\110\102\105\103" });
+local function GP()
+	j = .1;
+	V.Value = .1;
+	J = false;
+	r = false;
+	Q = false;
+	I = false;
+	v.Radius = 100;
+	h = {
+			box = { color = Color3.fromRGB(255, 255, 255), border_size_pixel = 1 },
+			tracer = { color = Color3.fromRGB(255, 255, 255), thickness = 1 },
+			distance_text = { size = 14, color = Color3.fromRGB(255, 255, 255) },
+			name = { color = Color3.fromRGB(255, 255, 255) },
+			head_dot = { color = Color3.fromRGB(255, 255, 255) },
+			chams = { team_check = true },
+		};
+	l:setValue(j);
+	NP:setState(J);
+	WP:setState(Q);
+	IP:setValue(v.Radius);
+	JP:setColor(h.box.color);
+	XP:setColor(h.tracer.color);
+	wP:setColor(h.distance_text.color);
+	UP:setColor(h.name.color);
+	yP:setColor(h.head_dot.color);
+	if C then
+		C:setState(false);
+	end;
+	if o then
+		o:setState(false);
+	end;
+	if q then
+		q:setState(false);
+	end;
+	if YP then
+		YP:setState(false);
+	end;
+	if OP then
+		OP:setState(false);
+	end;
+	if cP then
+		cP:setState(false);
+	end;
+	if MP then
+		MP:setState(false);
+	end;
+	if jP then
+		jP:setState(false);
+	end;
+	if VP then
+		VP:setState(false);
+	end;
+	if NP then
+		NP:setState(false);
+	end;
+	if RP then
+		RP:setValue(0);
+	end;
+	if hP then
+		hP:setValue(30);
+	end;
+	if xP then
+		xP:setState(false);
+	end;
+	if FP then
+		FP:setState(false);
+	end;
+	if fP then
+		fP:setState(false);
+	end;
+	for P in pairs(R.esp_cache) do
+		D(P);
+	end;
+	u();
+	print("\083\101\116\116\105\110\103\115 \114\101\115\101\116 \116\111 \100\101\102\097\117\108\116\046");
+end;
+local function nP()
+	local P = {
+			easing_strength = j,
+			tween_sensitivity = V.Value,
+			is_visibility_check_enabled = J,
+			is_optimized = r,
+			is_fov_enabled = Q,
+			is_auto_target_switch_enabled = I,
+			fov_circle_radius = v.Radius,
+			is_max_distance_enabled = N,
+			max_lock_on_distance = a,
+			esp_use_fov = QP:getState(),
+			is_esp_max_distance_enabled = w,
+			esp_max_distance = y,
+			features = {
+				box = { color = { (JP:getColor()).r, (JP:getColor()).g, (JP:getColor()).b }, border_size_pixel = h.box.border_size_pixel },
+				tracer = { color = { (XP:getColor()).r, (XP:getColor()).g, (XP:getColor()).b }, thickness = h.tracer.thickness },
+				distance_text = { color = { (wP:getColor()).r, (wP:getColor()).g, (wP:getColor()).b }, size = h.distance_text.size },
+				name = { color = { (UP:getColor()).r, (UP:getColor()).g, (UP:getColor()).b } },
+				head_dot = { color = { (yP:getColor()).r, (yP:getColor()).g, (yP:getColor()).b } },
+				chams = { team_check = h.chams.team_check },
+			},
+			aimbot = { is_aimbot_enabled = C and C:getState() or false, is_auto_target_switch_enabled = o and o:getState() or false, wall_check_enabled = q and q:getState() or false },
+			esp = {
+				esp_enabled = YP and YP:getState() or false,
+				box_enabled = OP and OP:getState() or false,
+				tracer_enabled = cP and cP:getState() or false,
+				head_dot_enabled = MP and MP:getState() or false,
+				distance_enabled = jP and jP:getState() or false,
+				name_enabled = VP and VP:getState() or false,
+				visibility_enabled = NP and NP:getState() or false,
+			},
+			player = { walk_speed = RP and RP:getValue() or 0, jump_height = hP and hP:getValue() or 30, jump_delay_bypass = xP and xP:getState() or false },
+			misc = { texture_enabled = FP and FP:getState() or false, votekick_rejoiner = fP and fP:getState() or false },
+		};
+	local m = (game:GetService("\072\116\116\112\083\101\114\118\105\099\101")):JSONEncode(P);
+	local Y = "\067\114\111\098\115\116\101\114\046\108\111\108";
+	local O = Y .. "\047\099\111\110\102\105\103\046\108\111\108";
+	if not isfolder(Y) then
+		makefolder(Y);
+	end;
+	writefile(O, m);
+	print("\067\111\110\102\105\103 \115\097\118\101\100 \115\117\099\099\101\115\115\102\117\108\108\121\033");
+end;
+local function uP()
+	GP();
+	local P = "\067\114\111\098\115\116\101\114\046\108\111\108";
+	local m = P .. "\047\099\111\110\102\105\103\046\108\111\108";
+	if isfile(m) then
+		local P = readfile(m);
+		local Y = (game:GetService("\072\116\116\112\083\101\114\118\105\099\101")):JSONDecode(P);
+		j = Y.easing_strength;
+		V.Value = Y.tween_sensitivity;
+		J = Y.is_visibility_check_enabled or false;
+		r = Y.is_optimized or false;
+		Q = Y.is_fov_enabled or false;
+		I = Y.is_auto_target_switch_enabled or false;
+		v.Radius = Y.fov_circle_radius or 100;
+		N = Y.is_max_distance_enabled or false;
+		a = Y.max_lock_on_distance or 500;
+		w = Y.is_esp_max_distance_enabled or false;
+		y = Y.esp_max_distance or 500;
+		E:setState(N);
+		L:setValue(a);
+		aP:setState(w);
+		rP:setValue(y);
+		if Y.esp_use_fov ~= nil then
+			QP:setState(Y.esp_use_fov);
+		end;
+		if Y.features then
+			h = {
+					box = { color = Color3.new(unpack(Y.features.box.color or { 1, 1, 1 })), border_size_pixel = Y.features.box.border_size_pixel or 1 },
+					tracer = { color = Color3.new(unpack(Y.features.tracer.color or { 1, 1, 1 })), thickness = Y.features.tracer.thickness or 1 },
+					distance_text = { color = Color3.new(unpack(Y.features.distance_text.color or { 1, 1, 1 })), size = Y.features.distance_text.size or 14 },
+					name = { color = Color3.new(unpack(Y.features.name.color or { 1, 1, 1 })) },
+					head_dot = { color = Color3.new(unpack(Y.features.head_dot.color or { 1, 1, 1 })) },
+					chams = { team_check = Y.features.chams.team_check or true },
+				};
+		else
+			h = {
+					box = { color = Color3.fromRGB(255, 255, 255), border_size_pixel = 1 },
+					tracer = { color = Color3.fromRGB(255, 255, 255), thickness = 1 },
+					distance_text = { size = 14, color = Color3.fromRGB(255, 255, 255) },
+					name = { color = Color3.fromRGB(255, 255, 255) },
+					head_dot = { color = Color3.fromRGB(255, 255, 255) },
+					chams = { team_check = true },
+				};
+		end;
+		l:setValue(j);
+		NP:setState(J);
+		WP:setState(Q);
+		IP:setValue(v.Radius);
+		JP:setColor(h.box.color);
+		XP:setColor(h.tracer.color);
+		wP:setColor(h.distance_text.color);
+		UP:setColor(h.name.color);
+		yP:setColor(h.head_dot.color);
+		if Y.aimbot then
+			if C then
+				C:setState(Y.aimbot.is_aimbot_enabled or false);
+			end;
+			if o then
+				o:setState(Y.aimbot.is_auto_target_switch_enabled or false);
+			end;
+			if q then
+				q:setState(Y.aimbot.wall_check_enabled or false);
+			end;
+		end;
+		if Y.esp then
+			if YP then
+				YP:setState(Y.esp.esp_enabled or false);
+			end;
+			if OP then
+				OP:setState(Y.esp.box_enabled or false);
+			end;
+			if cP then
+				cP:setState(Y.esp.tracer_enabled or false);
+			end;
+			if MP then
+				MP:setState(Y.esp.head_dot_enabled or false);
+			end;
+			if jP then
+				jP:setState(Y.esp.distance_enabled or false);
+			end;
+			if VP then
+				VP:setState(Y.esp.name_enabled or false);
+			end;
+			if NP then
+				NP:setState(Y.esp.visibility_enabled or false);
+			end;
+		end;
+		if Y.player then
+			if RP then
+				RP:setValue(Y.player.walk_speed or 0);
+			end;
+			if hP then
+				hP:setValue(Y.player.jump_height or 30);
+			end;
+			if xP then
+				xP:setState(Y.player.jump_delay_bypass or false);
+			end;
+		end;
+		if Y.misc then
+			if FP then
+				FP:setState(Y.misc.texture_enabled or false);
+			end;
+			if fP then
+				fP:setState(Y.misc.votekick_rejoiner or false);
+			end;
+		end;
+		print("\067\111\110\102\105\103 \108\111\097\100\101\100 \115\117\099\099\101\115\115\102\117\108\108\121\033");
+	else
+		print("\078\111 \099\111\110\102\105\103 \102\105\108\101 \102\111\117\110\100\033");
+	end;
+end;
+local SP = RP:getValue();
+local eP = hP:getValue();
+local function TP()
+	local P;
+	repeat
+		P = workspace:FindFirstChild("\073\103\110\111\114\101") and (workspace:FindFirstChild("\073\103\110\111\114\101")):FindFirstChildWhichIsA("\077\111\100\101\108");
+		task.wait();
+	until P;
+	return P;
+end;
+RP:bindToEvent("\111\110\078\101\119\086\097\108\117\101", function(P)
+	SP = P;
+end);
+hP:bindToEvent("\111\110\078\101\119\086\097\108\117\101", function(P)
+	(getgenv()).jump_height_value = P;
+end);
+l:bindToEvent("\111\110\078\101\119\086\097\108\117\101", function(P)
+	j = P;
+	Z(P);
+end);
+aP:bindToEvent("\111\110\084\111\103\103\108\101", function(P)
+	w = P;
+end);
+rP:bindToEvent("\111\110\078\101\119\086\097\108\117\101", function(P)
+	y = P;
+end);
+NP:bindToEvent("\111\110\084\111\103\103\108\101", function(P)
+	J = P;
+end);
+q:bindToEvent("\111\110\084\111\103\103\108\101", function(P)
+	X = P;
+end);
+WP:bindToEvent("\111\110\084\111\103\103\108\101", function(P)
+	Q = P;
+	v.Visible = P;
+end);
+IP:bindToEvent("\111\110\078\101\119\086\097\108\117\101", function(P)
+	v.Radius = P;
+end);
+bP:bindToEvent("\111\110\067\108\105\099\107", nP);
+ZP:bindToEvent("\111\110\067\108\105\099\107", uP);
+local dP = 0;
+local sP = .8681;
+local pP = Y.LocalPlayer;
+local function gP()
+	local P = game:GetService("\084\101\108\101\112\111\114\116\083\101\114\118\105\099\101");
+	local m = game.PlaceId;
+	pP:Kick("\089\111\117 \104\097\118\101 \098\101\101\110 \118\111\116\101-\107\105\099\107\101\100\046 \082\101\106\111\105\110\105\110\103 \097 \100\105\102\102\101\114\101\110\116 \115\101\114\118\101\114\046\046\046");
+	P:Teleport(m);
+end;
+local function KP()
+	local P = pP.PlayerGui:WaitForChild("\067\104\097\116\083\099\114\101\101\110\071\117\105");
+	local m = P.Main:WaitForChild("\068\105\115\112\108\097\121\086\111\116\101\075\105\099\107");
+	(m:GetPropertyChangedSignal("\086\105\115\105\098\108\101")):Connect(function()
+		if m.Visible and fP:getState() then
+			local P = m.TextTitle.Text;
+			local Y = {};
+			for P in P:gmatch("\037\083\043") do
+				table.insert(Y, P);
+			end;
+			if Y[2] == pP.Name then
+				gP();
+			end;
+		end;
+	end);
+end;
+c.InputBegan:Connect(function(P, m)
+	if m then
+		return;
+	end;
+	if P.KeyCode == Enum.KeyCode.Space then
+		local P = tick();
+		if P - dP < sP and xP:getState() then
+			local P = (TP()):FindFirstChildOfClass("\072\117\109\097\110\111\105\100");
+			if P then
+				P.Jump = true;
+			end;
+		end;
+		dP = P;
+	end;
+end);
+YP:bindToEvent("\111\110\084\111\103\103\108\101", function(m)
+	if m then
+		esp_loop = P.RenderStepped:Connect(function()
+				for P, m in ipairs(B()) do
+					if x(m) then
+						H(m);
+					end;
+				end;
+				for P, m in pairs(R.esp_cache) do
+					if P then
+						local Y = z(P, "\084\111\114\115\111");
+						local c = f(P, "\072\101\097\100");
+						if Y and c then
+							local M, j = O:WorldToViewportPoint(Y.Position);
+							if j then
+								local j = (c.Position - O.CFrame.Position).Magnitude;
+								local V = Vector2.new(M.X, M.Y);
+								local N = Vector2.new(O.ViewportSize.X / 2, O.ViewportSize.Y / 2);
+								local a = (V - N).Magnitude;
+								if w and j > y then
+									D(P);
+									continue;
+								end;
+								if not QP:getState() or a <= v.Radius then
+									local j = c:FindFirstChildOfClass("\066\105\108\108\098\111\097\114\100\071\117\105");
+									local V = j and j:FindFirstChildOfClass("\084\101\120\116\076\097\098\101\108");
+									if not j or not V then
+										D(P);
+										continue;
+									end;
+									local N = ((1000 / (O.CFrame.Position - Y.Position).Magnitude) * 80) / O.FieldOfView;
+									local a = t(math.round(3 * N), math.round(4 * N));
+									local J = e(c) and JP:getColor() or Color3.fromRGB(255, 0, 0);
+									if OP:getState() then
+										local P = t(M.X - a.X / 2, M.Y - a.Y / 2);
+										local Y = a;
+										m.box_square.Visible = true;
+										m.box_square.Color = J;
+										m.box_square.Thickness = 1;
+										m.box_square.Position = P;
+										m.box_square.Size = Y;
+										m.box_square.Filled = false;
+										m.box_outline.Visible = true;
+										m.box_outline.Color = Color3.fromRGB(0, 0, 0);
+										m.box_outline.Thickness = 1;
+										m.box_outline.Position = t(P.X - 1, P.Y - 1);
+										m.box_outline.Size = t(Y.X + 2, Y.Y + 2);
+										m.box_outline.Filled = false;
+									else
+										m.box_square.Visible = false;
+										m.box_outline.Visible = false;
+									end;
+									if cP:getState() then
+										m.tracer_line.Visible = true;
+										m.tracer_line.Color = XP:getColor();
+										m.tracer_line.Thickness = h.tracer.thickness;
+										m.tracer_line.From = t(O.ViewportSize.X / 2, O.ViewportSize.Y);
+										m.tracer_line.To = t(M.X, M.Y);
+									else
+										m.tracer_line.Visible = false;
+									end;
+									if VP:getState() then
+										m.name_label.Visible = true;
+										m.name_label.Text = V.Text;
+										m.name_label.Size = h.distance_text.size;
+										m.name_label.Color = UP:getColor();
+										m.name_label.Center = true;
+										m.name_label.Outline = true;
+										m.name_label.Position = t(m.box_square.Position.X + m.box_square.Size.X / 2, m.box_square.Position.Y - 30);
+									else
+										m.name_label.Visible = false;
+									end;
+									if jP:getState() then
+										local P = math.floor((O.CFrame.Position - Y.Position).Magnitude);
+										m.distance_label.Visible = true;
+										m.distance_label.Text = tostring(P) .. " \115\116\117\100\115";
+										m.distance_label.Size = h.distance_text.size;
+										m.distance_label.Color = wP:getColor();
+										m.distance_label.Center = true;
+										m.distance_label.Outline = true;
+										m.distance_label.Position = t(m.box_square.Position.X + m.box_square.Size.X / 2, m.box_square.Position.Y - 15);
+									else
+										m.distance_label.Visible = false;
+									end;
+									if MP:getState() then
+										if not m.head_dot then
+											m.head_dot = Drawing.new("\067\105\114\099\108\101");
+										end;
+										local P, Y = O:WorldToViewportPoint(c.Position);
+										if Y then
+											m.head_dot.Visible = true;
+											m.head_dot.Color = yP:getColor();
+											m.head_dot.Thickness = 1;
+											m.head_dot.Filled = true;
+											m.head_dot.Transparency = 1;
+											m.head_dot.Radius = a.Y / 20;
+											m.head_dot.Position = Vector2.new(P.X, P.Y);
+										else
+											m.head_dot.Visible = false;
+										end;
+									else
+										if m.head_dot then
+											m.head_dot.Visible = false;
+										end;
+									end;
+								else
+									D(P);
+								end;
+							else
+								D(P);
+							end;
+						else
+							D(P);
+						end;
+					else
+						D(P);
+					end;
+				end;
+			end);
+	else
+		if esp_loop then
+			esp_loop:Disconnect();
+			for P in pairs(R.esp_cache) do
+				D(P);
+			end;
+		end;
+	end;
+end);
+fP:bindToEvent("\111\110\084\111\103\103\108\101", function(P)
+	if P then
+		KP();
+	end;
+end);
+JP:bindToEvent("\111\110\067\111\108\111\114\067\104\097\110\103\101\100", function(P)
+	h.box.color = P;
+end);
+XP:bindToEvent("\111\110\067\111\108\111\114\067\104\097\110\103\101\100", function(P)
+	h.tracer.color = P;
+end);
+wP:bindToEvent("\111\110\067\111\108\111\114\067\104\097\110\103\101\100", function(P)
+	h.distance_text.color = P;
+end);
+UP:bindToEvent("\111\110\067\111\108\111\114\067\104\097\110\103\101\100", function(P)
+	h.name_color = P;
+end);
+yP:bindToEvent("\111\110\067\111\108\111\114\067\104\097\110\103\101\100", function(P)
+	h.head_dot_color = P;
+end);
+hP:bindToEvent("\111\110\078\101\119\086\097\108\117\101", function(P)
+	eP = P;
+end);
+FP:bindToEvent("\111\110\084\111\103\103\108\101", function(P)
+	if P then
+		n();
+	else
+		u();
+	end;
+end);
+c.InputBegan:Connect(function(P, m)
+	if m or not p then
+		return;
+	end;
+	if P.KeyCode == Enum.KeyCode.F4 then
+		p:minimize();
+	end;
+end);
+local function CP(P)
+	return tonumber(P) ~= nil or P == "\105\110\102";
+end;
+local qP = (game:GetService("\082\117\110\083\101\114\118\105\099\101")).Heartbeat;
+local oP = true;
+while oP do
+	local P = TP();
+	local m = P and P:FindFirstChildWhichIsA("\072\117\109\097\110\111\105\100");
+	if m then
+		m.JumpPower = eP;
+		(m:GetPropertyChangedSignal("\087\097\108\107\083\112\101\101\100")):Connect(function()
+			m.JumpPower = eP;
+		end);
+		while P and (m and (m.Parent and oP)) do
+			if m.MoveDirection.Magnitude > 0 then
+				if SP and CP(SP) then
+					P:TranslateBy(m.MoveDirection * tonumber(SP));
+				else
+					P:TranslateBy(m.MoveDirection);
+				end;
+			end;
+			if not P.Parent then
+				break;
+			end;
+			qP:Wait();
+		end;
+	end;
+end;
